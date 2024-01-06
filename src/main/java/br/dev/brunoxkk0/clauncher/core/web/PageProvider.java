@@ -1,10 +1,10 @@
 package br.dev.brunoxkk0.clauncher.core.web;
 
-import br.dev.brunoxkk0.clauncher.CLauncher;
 import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.FileRequest;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.JimfsFileSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
@@ -20,49 +20,67 @@ import java.util.HashMap;
 
 public class PageProvider {
 
+    private static final Logger logger = LoggerFactory.getLogger("PageProvider");
+
     private static final JimfsFileSystem FILE_SYSTEM;
     private static final Path UI_FOLDER;
 
-    private static final HashMap<String, Path> STATIC_CONTENT = new HashMap<>();
+    private static final HashMap<String, Page> CACHED_CONTENT = new HashMap<>();
 
     private static final TemplateEngine TEMPLATE_ENGINE = new TemplateEngine();
     private static final StringTemplateResolver TEMPLATE_RESOLVER = new StringTemplateResolver();
 
-    private static final Context PAGE_PROVIDER_CONTEXT = new Context();
+    private static void onRequestContent(Path path) throws IOException {
 
-    public static FileRequest getFileRequestListener() {
-        return (path, set, fileAttributes) -> {
-            if (path.toString().equals("/testepage.html") && set.isEmpty()) {
-                try {
-                    Files.writeString(path, processStaticTemplate("""
-                            <!DOCTYPE html>
-                            <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml">
-                                                        
-                            <head>
-                                <meta charset="UTF-8">
-                                <title>Title</title>
-                                <style>
-                                    :root{
-                                        background-color: purple;
-                                    }
-                                </style>
-                            </head>
-                                                        
-                            <body>
-                                <h1>NOT FOUND</h1>
-                                <p th:text='${timestamp}'>Não processado pela engine</p>
-                                <p th:text='${template}'>false</p>
-                                <br>
-                                <a href="/ui_gen/app.html">Voltar</a>
-                            </body>
-                                                
-                            </html>
-                            """), StandardCharsets.UTF_8);
-                } catch (IOException e) {
-                    System.out.println("Error ao criar um arquivo padrão para " + path);
-                }
+        String fixedPath = path.toString();
+
+        if (!fixedPath.startsWith("/"))
+            fixedPath = "/" + fixedPath;
+
+        if (CACHED_CONTENT.containsKey(fixedPath)) {
+
+            long start = System.currentTimeMillis();
+
+            Page page = CACHED_CONTENT.get(fixedPath);
+            Context context = PageContext.getGlobalContext();
+            String processedText = TEMPLATE_ENGINE.process(page.raw_content, context);
+            Files.writeString(page.path, processedText, StandardCharsets.UTF_8);
+
+            logger.info("Processed cached file '{}' ~ {}ms", fixedPath, (System.currentTimeMillis() - start));
+
+            return;
+        }
+
+        if (path.toString().equals("/testepage.html")) {
+            try {
+                Files.writeString(path, processStaticTemplate("""
+                        <!DOCTYPE html>
+                        <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml">
+                                                    
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>Title</title>
+                            <style>
+                                :root{
+                                    background-color: purple;
+                                }
+                            </style>
+                        </head>
+                                                    
+                        <body>
+                            <h1>NOT FOUND</h1>
+                            <p th:text='${timestamp}'>Não processado pela engine</p>
+                            <p th:text='${template}'>false</p>
+                            <br>
+                            <a href="/app.html">Voltar</a>
+                        </body>
+                                            
+                        </html>
+                        """), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                System.out.println("Error ao criar um arquivo padrão para " + path);
             }
-        };
+        }
     }
 
     static {
@@ -70,12 +88,18 @@ public class PageProvider {
         TEMPLATE_ENGINE.addTemplateResolver(TEMPLATE_RESOLVER);
 
         FILE_SYSTEM = (JimfsFileSystem) Jimfs.newFileSystem(Configuration.unix());
-        FILE_SYSTEM.getDefaultView().appendRequestListener(getFileRequestListener());
 
-        UI_FOLDER = FILE_SYSTEM.getPath("/ui_gen");
+        FILE_SYSTEM.getDefaultView().appendRequestListener((path, set, fileAttributes) -> {
+            if (set.isEmpty()) { // If is empty, it's just read only
+                try {
+                    onRequestContent(path);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
 
-        PAGE_PROVIDER_CONTEXT.setVariable("timestamp",  System.currentTimeMillis());
-        PAGE_PROVIDER_CONTEXT.setVariable("template",   "Template ativo");
+        UI_FOLDER = FILE_SYSTEM.getPath("/");
 
         try {
             loadStaticContent(UI_FOLDER);
@@ -89,7 +113,7 @@ public class PageProvider {
 
         for (StaticAssets staticAssets : StaticAssets.values()) {
 
-            if (STATIC_CONTENT.containsKey(staticAssets.getResource()))
+            if (CACHED_CONTENT.containsKey(staticAssets.getResource()))
                 return;
 
             String text = readInputStream(PageProvider.class.getResourceAsStream(staticAssets.getResource()));
@@ -102,11 +126,9 @@ public class PageProvider {
             if (file.getParent() != null)
                 Files.createDirectories(file.getParent());
 
-            Files.createFile(file);
-
             Path path = Files.writeString(folder.resolve(staticAssets.getPath()), finalText, StandardCharsets.UTF_8);
 
-            STATIC_CONTENT.put(staticAssets.getPath(), path);
+            CACHED_CONTENT.put(staticAssets.getPath(), new Page(path, text));
         }
     }
 
@@ -132,7 +154,7 @@ public class PageProvider {
     }
 
     private static String processStaticTemplate(String source) {
-        return TEMPLATE_ENGINE.process(source, PAGE_PROVIDER_CONTEXT);
+        return TEMPLATE_ENGINE.process(source, PageContext.getGlobalContext());
     }
 
     public static String getPage(String page) {
@@ -141,9 +163,14 @@ public class PageProvider {
 
         Path targetFile = UI_FOLDER.resolve(page);
 
-        CLauncher.getLogger().info("Page write in " + (System.currentTimeMillis() - start) + "MS");
+        logger.info("Page write in " + (System.currentTimeMillis() - start) + "MS");
 
         return targetFile.toUri().toString();
+
+    }
+
+    public record Page(Path path, String raw_content) {
+
     }
 
 }

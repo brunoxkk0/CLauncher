@@ -2,6 +2,7 @@ package br.dev.brunoxkk0.clauncher.core;
 
 import br.dev.brunoxkk0.clauncher.CLauncher;
 import br.dev.brunoxkk0.clauncher.core.web.PageProvider;
+import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
@@ -9,6 +10,8 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
 import java.io.IOException;
+
+import static java.lang.Thread.sleep;
 
 public record InterfaceController(Scene scene, WebView webView, WebEngine webEngine) {
 
@@ -30,6 +33,11 @@ public record InterfaceController(Scene scene, WebView webView, WebEngine webEng
 
         CLauncher.getLogger().info("Loading index page.");
         webEngine.load(PageProvider.getPage("app.html"));
+    }
+
+    public void reloadPage(){
+        if(webEngine != null)
+            webEngine.executeScript("window.location.reload();");
     }
 
     public void afterBind() {
