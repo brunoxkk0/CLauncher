@@ -19,4 +19,12 @@ public final class LauncherBridgeController {
         return new Date().toString();
     }
 
+    public void log(String message){
+        System.out.println("JS: " + message);
+    }
+
+    public void error(String message){
+        System.out.println("JS: " + message);
+    }
+
 }

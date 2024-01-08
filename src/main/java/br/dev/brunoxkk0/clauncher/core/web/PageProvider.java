@@ -3,6 +3,7 @@ package br.dev.brunoxkk0.clauncher.core.web;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.JimfsFileSystem;
+import fi.iki.elonen.NanoHTTPD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -13,12 +14,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 
-public class PageProvider {
+public class PageProvider extends NanoHTTPD{
 
     private static final Logger logger = LoggerFactory.getLogger("PageProvider");
 
@@ -27,8 +29,18 @@ public class PageProvider {
 
     private static final HashMap<String, Page> CACHED_CONTENT = new HashMap<>();
 
+    public static HashMap<String, Page> getCachedContent() {
+        return CACHED_CONTENT;
+    }
+
     private static final TemplateEngine TEMPLATE_ENGINE = new TemplateEngine();
     private static final StringTemplateResolver TEMPLATE_RESOLVER = new StringTemplateResolver();
+
+    public PageProvider() throws IOException {
+        super(8000);
+        start();
+    }
+
 
     private static void onRequestContent(Path path) throws IOException {
 
@@ -37,7 +49,7 @@ public class PageProvider {
         if (!fixedPath.startsWith("/"))
             fixedPath = "/" + fixedPath;
 
-        if (CACHED_CONTENT.containsKey(fixedPath)) {
+        if (CACHED_CONTENT.containsKey(fixedPath) && fixedPath.endsWith(".htmlA")) {
 
             long start = System.currentTimeMillis();
 
@@ -87,7 +99,7 @@ public class PageProvider {
 
         TEMPLATE_ENGINE.addTemplateResolver(TEMPLATE_RESOLVER);
 
-        FILE_SYSTEM = (JimfsFileSystem) Jimfs.newFileSystem(Configuration.unix());
+        FILE_SYSTEM = (JimfsFileSystem) Jimfs.newFileSystem("system", Configuration.unix());
 
         FILE_SYSTEM.getDefaultView().appendRequestListener((path, set, fileAttributes) -> {
             if (set.isEmpty()) { // If is empty, it's just read only
@@ -116,8 +128,15 @@ public class PageProvider {
             if (CACHED_CONTENT.containsKey(staticAssets.getResource()))
                 return;
 
+            logger.info("Loading static asset {}", staticAssets);
+
             String text = readInputStream(PageProvider.class.getResourceAsStream(staticAssets.getResource()));
-            String finalText = processStaticTemplate(text);
+            String finalText = text;
+
+            if(staticAssets.getPath().endsWith(".htmlA")){
+                finalText = processStaticTemplate(finalText);
+            }
+
 
             Files.createDirectories(folder);
 
@@ -157,7 +176,7 @@ public class PageProvider {
         return TEMPLATE_ENGINE.process(source, PageContext.getGlobalContext());
     }
 
-    public static String getPage(String page) {
+    public static String getPage(String page) throws MalformedURLException {
 
         long start = System.currentTimeMillis();
 
@@ -165,6 +184,7 @@ public class PageProvider {
 
         logger.info("Page write in " + (System.currentTimeMillis() - start) + "MS");
 
+        System.out.println(targetFile.toUri().toURL().toExternalForm());
         return targetFile.toUri().toString();
 
     }

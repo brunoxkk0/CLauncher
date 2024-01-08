@@ -17,6 +17,10 @@ module clauncher {
     requires thymeleaf;
     requires org.slf4j;
 
+    requires jdk.xml.dom;
+
+    requires nanohttpd;
+
     exports br.dev.brunoxkk0.clauncher;
     opens br.dev.brunoxkk0.clauncher.core;
 }

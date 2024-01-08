@@ -25,9 +25,13 @@ public class CLauncher extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+
         CLauncher.stage = stage;
+
         stage.setTitle("Hello!");
         stage.setScene(createScene(540, 320));
+        stage.show();
+
     }
 
     public Scene createScene(int width, int height) throws IOException {
@@ -43,6 +47,7 @@ public class CLauncher extends Application {
         interfaceController.onPreInit();
 
         return scene;
+
     }
 
     public static void main(String[] args) {
