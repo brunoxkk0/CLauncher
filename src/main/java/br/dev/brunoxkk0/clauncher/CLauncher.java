@@ -41,7 +41,6 @@ public class CLauncher extends Application {
 
         stage.setTitle("Hello!");
         stage.setScene(createScene(540, 320));
-        stage.show();
 
     }
 

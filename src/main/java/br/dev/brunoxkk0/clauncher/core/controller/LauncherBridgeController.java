@@ -10,7 +10,7 @@ public final class LauncherBridgeController implements Bridge {
 
     public void load() {
         CLauncher.getLogger().info("Page loaded");
-        if (CLauncher.getStage().isShowing())
+        if (!CLauncher.getStage().isShowing())
             CLauncher.getStage().show();
     }
 
