@@ -2,17 +2,18 @@ package br.dev.brunoxkk0.clauncher;
 
 import br.dev.brunoxkk0.clauncher.core.InterfaceController;
 import javafx.application.Application;
-import javafx.scene.CacheHint;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javafx.scene.text.FontSmoothingType;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import lombok.Getter;
+import net.yetihafen.javafx.customcaption.CustomCaption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URL;
 
 public class CLauncher extends Application {
 
@@ -39,8 +40,14 @@ public class CLauncher extends Application {
         uiPort = 64321;
         uiDir = "/dist";
 
-        stage.setTitle("Hello!");
+        stage.centerOnScreen();
         stage.setScene(createScene(540, 320));
+
+        if(System.getProperty("os.name", "").toLowerCase().contains("win"))
+            CustomCaption.useForStage(stage);
+
+        stage.setTitle("CLauncher");
+        loadIcons(stage);
 
     }
 
@@ -63,7 +70,23 @@ public class CLauncher extends Application {
     }
 
     public static void main(String[] args) {
-        launch();
+        try{
+            launch();
+        }catch (Exception e){
+            System.out.println("Deu erro");
+            e.printStackTrace();
+        }
+    }
+
+    private static void loadIcons(Stage stage){
+
+        for(int i = 0; i < 4; i++){
+            URL url = CLauncher.class.getResource("/icons/icon_" + i + ".png");
+
+            if(url != null)
+                stage.getIcons().add(new Image(url.toExternalForm()));
+        }
+
     }
 
 }

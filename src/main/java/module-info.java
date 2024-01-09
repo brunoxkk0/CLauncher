@@ -12,12 +12,14 @@ module clauncher {
 
     requires lombok;
 
-    //requires net.yetihafen.javafx.customcaption;
+    requires net.yetihafen.javafx.customcaption;
 
     requires org.slf4j;
 
+    opens br.dev.brunoxkk0.clauncher;
     opens br.dev.brunoxkk0.clauncher.core;
     opens br.dev.brunoxkk0.clauncher.core.controller;
 
     exports br.dev.brunoxkk0.clauncher;
+
 }
