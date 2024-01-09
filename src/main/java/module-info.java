@@ -6,21 +6,18 @@ module clauncher {
     requires javafx.web;
     requires javafx.fxml;
 
-    requires com.google.common.jimfs;
-
+    requires jdk.xml.dom;
+    requires jdk.httpserver;
     requires jdk.jsobject;
 
     requires lombok;
 
-    requires net.yetihafen.javafx.customcaption;
+    //requires net.yetihafen.javafx.customcaption;
 
-    requires thymeleaf;
     requires org.slf4j;
 
-    requires jdk.xml.dom;
-
-    requires jdk.httpserver;
+    opens br.dev.brunoxkk0.clauncher.core;
+    opens br.dev.brunoxkk0.clauncher.core.controller;
 
     exports br.dev.brunoxkk0.clauncher;
-    opens br.dev.brunoxkk0.clauncher.core;
 }

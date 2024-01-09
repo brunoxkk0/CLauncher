@@ -1,4 +1,4 @@
-package br.dev.brunoxkk0.clauncher.core.web.http;
+package br.dev.brunoxkk0.clauncher.core.web;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;

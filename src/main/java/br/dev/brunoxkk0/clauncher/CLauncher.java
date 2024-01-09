@@ -23,10 +23,19 @@ public class CLauncher extends Application {
     @Getter
     private static Stage stage;
 
+    @Getter
+    private static Integer uiPort;
+
+    @Getter
+    private static String uiDir;
+
     @Override
     public void start(Stage stage) throws IOException {
 
         CLauncher.stage = stage;
+
+        uiPort = 64321;
+        uiDir = "/dist";
 
         stage.setTitle("Hello!");
         stage.setScene(createScene(540, 320));
@@ -43,8 +52,8 @@ public class CLauncher extends Application {
         Scene scene = new Scene(webView, width, height);
         scene.setFill(Color.TRANSPARENT);
 
-        interfaceController = new InterfaceController(scene, webView, webView.getEngine());
-        interfaceController.onPreInit();
+        interfaceController = new InterfaceController(scene, webView, webView.getEngine(), uiPort, uiDir);
+        interfaceController.preInit();
 
         return scene;
 
