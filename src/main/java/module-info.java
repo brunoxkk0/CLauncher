@@ -1,6 +1,7 @@
 module clauncher {
 
     requires java.logging;
+    requires java.naming;
 
     requires javafx.base;
     requires javafx.web;
@@ -15,6 +16,8 @@ module clauncher {
     requires net.yetihafen.javafx.customcaption;
 
     requires org.slf4j;
+    requires ch.qos.logback.core;
+    requires ch.qos.logback.classic;
 
     opens br.dev.brunoxkk0.clauncher;
     opens br.dev.brunoxkk0.clauncher.core;
