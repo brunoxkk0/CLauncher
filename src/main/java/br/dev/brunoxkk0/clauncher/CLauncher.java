@@ -2,8 +2,10 @@ package br.dev.brunoxkk0.clauncher;
 
 import br.dev.brunoxkk0.clauncher.core.InterfaceController;
 import javafx.application.Application;
+import javafx.scene.CacheHint;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
+import javafx.scene.text.FontSmoothingType;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import lombok.Getter;
@@ -47,7 +49,9 @@ public class CLauncher extends Application {
 
         WebView webView = new WebView();
         webView.setId("webView");
+
         webView.setPageFill(Color.TRANSPARENT);
+        webView.setContextMenuEnabled(false);
 
         Scene scene = new Scene(webView, width, height);
         scene.setFill(Color.TRANSPARENT);
