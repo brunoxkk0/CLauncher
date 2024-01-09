@@ -1,9 +1,10 @@
 package br.dev.brunoxkk0.clauncher.core.web;
 
+import br.dev.brunoxkk0.clauncher.core.web.http.MinimalHttpServer;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.JimfsFileSystem;
-import fi.iki.elonen.NanoHTTPD;
+import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -20,7 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 
-public class PageProvider extends NanoHTTPD{
+public class PageProvider{
 
     private static final Logger logger = LoggerFactory.getLogger("PageProvider");
 
@@ -35,11 +36,6 @@ public class PageProvider extends NanoHTTPD{
 
     private static final TemplateEngine TEMPLATE_ENGINE = new TemplateEngine();
     private static final StringTemplateResolver TEMPLATE_RESOLVER = new StringTemplateResolver();
-
-    public PageProvider() throws IOException {
-        super(8000);
-        start();
-    }
 
 
     private static void onRequestContent(Path path) throws IOException {
@@ -115,6 +111,13 @@ public class PageProvider extends NanoHTTPD{
 
         try {
             loadStaticContent(UI_FOLDER);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            HttpServer httpServer = MinimalHttpServer.createServer(8000, "/dist");
+            httpServer.start();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

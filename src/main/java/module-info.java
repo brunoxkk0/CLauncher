@@ -19,7 +19,7 @@ module clauncher {
 
     requires jdk.xml.dom;
 
-    requires nanohttpd;
+    requires jdk.httpserver;
 
     exports br.dev.brunoxkk0.clauncher;
     opens br.dev.brunoxkk0.clauncher.core;
