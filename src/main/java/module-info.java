@@ -1,9 +1,10 @@
-module clauncher {
+module br.dev.brunoxkk0.clauncher {
 
     requires java.logging;
     requires java.naming;
 
     requires javafx.base;
+    requires javafx.graphics;
     requires javafx.web;
     requires javafx.fxml;
 
