@@ -2,13 +2,13 @@ package br.dev.brunoxkk0.clauncher;
 
 import br.dev.brunoxkk0.clauncher.core.InterfaceController;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import lombok.Getter;
-import net.yetihafen.javafx.customcaption.CustomCaption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +40,13 @@ public class CLauncher extends Application {
         uiPort = 64321;
         uiDir = "/dist";
 
+        stage.setOnCloseRequest(e -> {
+            Platform.exit();
+            System.exit(0);
+        });
+
         stage.centerOnScreen();
         stage.setScene(createScene(540, 320));
-
-        if(System.getProperty("os.name", "").toLowerCase().contains("win"))
-            CustomCaption.useForStage(stage);
 
         stage.setTitle("CLauncher");
         loadIcons(stage);
@@ -70,12 +72,7 @@ public class CLauncher extends Application {
     }
 
     public static void main(String[] args) {
-        try{
-            launch();
-        }catch (Exception e){
-            System.out.println("Deu erro");
-            e.printStackTrace();
-        }
+        launch();
     }
 
     private static void loadIcons(Stage stage){
